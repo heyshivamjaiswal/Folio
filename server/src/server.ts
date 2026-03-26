@@ -12,7 +12,7 @@ app.use(clerkMiddleware());
 
 app.use(
   cors({
-    origin: 'http://localhost:5173', // your Vite frontend port
+    origin: 'http://localhost:5173',
     credentials: true,
   })
 );
@@ -35,7 +35,11 @@ app.use('/api', pdfRoutes);
 const PORT = process.env.PORT || 3000;
 
 async function start() {
-  await initializeIndex();
+  try {
+    await initializeIndex();
+  } catch (err) {
+    console.warn('Vector db failed , continuing...', err);
+  }
 
   app.listen(PORT, () => {
     console.log(`server is running on ${PORT}`);
