@@ -10,6 +10,7 @@ No more saving links you never read. Just ask.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Folio-6366f1?style=for-the-badge&logo=vercel)](https://folio-blond-delta.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-heyshivamjaiswal%2FFolio-181717?style=for-the-badge&logo=github)](https://github.com/heyshivamjaiswal/Folio)
+[![API Endpoint](https://img.shields.io/badge/API%20Endpoint-Render-000000?style=for-the-badge&logo=render&logoColor=white)](https://folio-kdur.onrender.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Full%20Stack-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 
 </div>
