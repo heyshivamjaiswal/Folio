@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "esnext",
-    // Remove or expand the types array to allow auto-discovery
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
     "types": ["node"],
     "allowSyntheticDefaultImports": true,
-
     "esModuleInterop": true,
     "skipLibCheck": true,
     "rootDir": "./src",
@@ -14,10 +13,10 @@
     "declaration": true,
     "declarationMap": true,
     "strict": true,
-    "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
     "moduleDetection": "force"
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
