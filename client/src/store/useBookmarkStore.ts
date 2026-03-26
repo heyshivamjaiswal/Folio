@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { Bookmark } from '../type';
 import { listBookmarks } from '../api';
-import { useAuth } from '@clerk/clerk-react';
 
 type State = {
   bookmarks: Bookmark[];
