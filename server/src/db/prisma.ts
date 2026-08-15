@@ -1,19 +1,18 @@
-import 'dotenv/config'; // Crucial: Loads your .env before anything else
-import { PrismaClient } from '@prisma/client';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { neonConfig } from '@neondatabase/serverless';
-import ws from 'ws';
+import "dotenv/config";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
-if (typeof window === 'undefined') {
-  neonConfig.webSocketConstructor = ws;
-}
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 
-const connectionString = process.env.DATABASE_URL;
+neonConfig.webSocketConstructor = ws;
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL is missing in your .env file');
-}
+const adapter = new PrismaNeon({
+  connectionString: process.env.DATABASE_URL!,
+});
 
-// Pass the connection string to the adapter, then the adapter to the client
-const adapter = new PrismaNeon({ connectionString });
-export const prisma = new PrismaClient({ adapter });
+export const prisma = new PrismaClient({
+  adapter,
+  log: ["error", "warn"],
+});

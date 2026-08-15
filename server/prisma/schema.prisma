@@ -1,27 +1,25 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
-  
 }
 
 datasource db {
   provider = "postgresql"
-
-
-   
 }
 
 model Bookmark {
-  id Int @id @default(autoincrement())
-  userId String
-  title String 
-  url String?
-  type String
-  createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  userId       String
+  title        String
+  url          String?
+  type         String
+  createdAt    DateTime @default(now())
+  errorMessage String?
+  status       String   @default("pending")
+  storagePath  String?
+}
+
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
 }

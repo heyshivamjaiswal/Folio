@@ -10,14 +10,13 @@ export async function uploadPDF(req: Request, res: Response) {
     }
 
     const file = req.file;
-
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    console.log('[uploadPDF] file:', file.path, 'userId:', userId);
+    console.log('[uploadPDF] file:', file.originalname, 'userId:', userId);
 
-    const result = await processPDF(file.path, userId);
+    const result = await processPDF(file.buffer, file.originalname, userId);
 
     res.json({ success: true, result });
   } catch (err) {

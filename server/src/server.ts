@@ -1,3 +1,6 @@
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
+
 import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import { clerkMiddleware } from '@clerk/express';
@@ -13,19 +16,28 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    process.env.FRONTEND_URL || '', // set this on Render
+    process.env.FRONTEND_URL || '',
   ].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
-app.use(cors(corsOptions)); // <-- Fixed: using your options object
+app.use(cors(corsOptions));
 
 // 2. Body Parser
 app.use(express.json());
 
 // 3. Authentication
-app.use(clerkMiddleware());
+if (!process.env.CLERK_SECRET_KEY || !process.env.CLERK_PUBLISHABLE_KEY) {
+  throw new Error('CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY must both be set');
+}
+
+app.use(
+  clerkMiddleware({
+    secretKey: process.env.CLERK_SECRET_KEY,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+  })
+);
 
 // 4. Base Routes
 app.get('/', (req: Request, res: Response) => {
