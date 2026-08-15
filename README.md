@@ -1,15 +1,15 @@
 <div align="center">
 
-# Atlas
+# Folio
 
 ### Every answer, traced to the line it came from.
 
-**Atlas** is a source-verified RAG (Retrieval-Augmented Generation) knowledge tool.
-Save PDFs, articles, and YouTube videos — then ask questions and get answers with
+**Folio** is a source-verified RAG (Retrieval-Augmented Generation) knowledge tool.
+Save PDFs, articles, and YouTube videos  then ask questions and get answers with
 exact citations: the page number, the timestamp, the paragraph. Not just "trust me."
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Atlas-6366f1?style=for-the-badge&logo=vercel)](https://folio-blond-delta.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github)](https://github.com/heyshivamjaiswal/Atlas)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Folio-6366f1?style=for-the-badge&logo=vercel)](https://folio-blond-delta.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github)](https://github.com/heyshivamjaiswal/Folio)
 [![API](https://img.shields.io/badge/API-Render-000000?style=for-the-badge&logo=render&logoColor=white)](https://folio-kdur.onrender.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Full%20Stack-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 
@@ -17,13 +17,13 @@ exact citations: the page number, the timestamp, the paragraph. Not just "trust 
 
 ---
 
-## What Atlas actually does differently
+## What Folio actually does differently
 
-Most RAG demos look the same: upload a document, ask a question, get an answer, hope it's right. Atlas is built around one specific idea — **an answer is only useful if you can check it** — and that shapes every design decision below.
+Most RAG demos look the same: upload a document, ask a question, get an answer, hope it's right. Folio is built around one specific idea  **an answer is only useful if you can check it**  and that shapes every design decision below.
 
 - **Real citations, not vibes.** Every claim links to the PDF page, the video timestamp, or the article it came from — clickable, not just labeled.
-- **It tells you when it's guessing.** If your saved content doesn't have a good answer, Atlas doesn't quietly blend in general knowledge. It falls back to a live web search only in "Ask Anything" mode, and says so explicitly in the answer.
-- **It admits when it doesn't know.** Ask a narrow question about one source and Atlas can't find it? You get told plainly, with a prompt to broaden the search — not a hallucinated guess.
+- **It tells you when it's guessing.** If your saved content doesn't have a good answer, Folio doesn't quietly blend in general knowledge. It falls back to a live web search only in "Ask Anything" mode, and says so explicitly in the answer.
+- **It admits when it doesn't know.** Ask a narrow question about one source and Folio can't find it? You get told plainly, with a prompt to broaden the search  not a hallucinated guess.
 - **Cross-source conflict awareness.** If two saved sources disagree, the model is instructed to surface that disagreement instead of silently picking one.
 
 ---
@@ -81,7 +81,7 @@ storeChunk() — Pinecone, namespace(userId), metadata: {
 }
 ```
 
-Every bookmark also tracks a real ingestion **status** (`pending` → `processing` → `ready`/`failed`), with the failure reason surfaced in the UI — not a silent dead entry that looks saved but never resolves.
+Every bookmark also tracks a real ingestion **status** (`pending` → `processing` → `ready`/`failed`), with the failure reason surfaced in the UI  not a silent dead entry that looks saved but never resolves.
 
 ### Retrieval and answering
 
@@ -114,17 +114,17 @@ deep-linked YouTube timestamp, direct article URL,
 or a signed URL fetched on demand for private PDFs
 ```
 
-**This source** — scoped to one saved bookmark. If the retrieved content isn't a strong enough match for the question, Atlas says so directly and never falls back to the open web. The scope is a promise: an answer here only ever comes from what you saved.
+**This source** — scoped to one saved bookmark. If the retrieved content isn't a strong enough match for the question, Folio says so directly and never falls back to the open web. The scope is a promise: an answer here only ever comes from what you saved.
 
-**Ask anything** — searches across every saved source at once. If nothing saved is a strong match, it falls back to a live web search (Tavily) — and the resulting answer explicitly flags which parts came from your content versus the open web.
+**Ask anything** — searches across every saved source at once. If nothing saved is a strong match, it falls back to a live web search (Tavily)  and the resulting answer explicitly flags which parts came from your content versus the open web.
 
 ### RAG pipeline, with the Tavily fallback
 
-The diagram below is the same flow as above, redrawn to make the fallback branch explicit — this is the part that keeps Atlas from quietly turning into "just ask the model."
+The diagram below is the same flow as above, redrawn to make the fallback branch explicit  this is the part that keeps Folio from quietly turning into "just ask the model."
 
 ![RAG pipeline with Tavily fallback](./screenshot/fallback.png)
 
-The key design choice sits in the top fork: **this-source mode never touches the fallback branch at all.** A no-match there is a dead end by design — Atlas tells you plainly and stops, rather than quietly widening the search. Only **ask-anything mode** is allowed to reach for Tavily, and when it does, the LLM is explicitly prompted to label which parts of the answer came from your saved sources versus the open web.
+The key design choice sits in the top fork: **this-source mode never touches the fallback branch at all.** A no-match there is a dead end by design  Folio tells you plainly and stops, rather than quietly widening the search. Only **ask-anything mode** is allowed to reach for Tavily, and when it does, the LLM is explicitly prompted to label which parts of the answer came from your saved sources versus the open web.
 
 ### Two databases, one purpose
 
