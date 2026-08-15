@@ -14,7 +14,7 @@ export default function LandingPage() {
         <div className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)]">
             {/* Top bar */}
             <header className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                <span className="text-display text-sm">ATLAS</span>
+                <span className="text-display text-sm">Folio</span>
                 <div className="flex items-center gap-4">
                     <ThemeToggle />
                     <Link to="/sign-in" className="btn-ghost text-sm">
@@ -35,7 +35,7 @@ export default function LandingPage() {
                         it came from.
                     </h1>
                     <p className="text-[var(--color-ink-muted)] text-[1.0625rem] leading-relaxed max-w-md mb-8">
-                        Atlas reads your PDFs, articles, and videos, then answers your questions —
+                        Folio reads your PDFs, articles, and videos, then answers your questions —
                         showing you the exact page, timestamp, or paragraph behind every claim.
                         Nothing is stated without a source you can check yourself.
                     </p>
@@ -58,7 +58,7 @@ export default function LandingPage() {
                     <Step
                         path="/ingest"
                         title="Bring in your sources"
-                        body="Upload a PDF, paste an article link, or drop a YouTube video. Atlas reads it page by page, paragraph by paragraph, and never flattens the structure it came from."
+                        body="Upload a PDF, paste an article link, or drop a YouTube video. Folio reads it page by page, paragraph by paragraph, and never flattens the structure it came from."
                     />
                     <Step
                         path="/ask"
@@ -68,7 +68,7 @@ export default function LandingPage() {
                     <Step
                         path="/locate"
                         title="Get the exact location"
-                        body="Every claim in the answer carries its source: PDF page number, video timestamp, or article link. If two sources disagree, Atlas tells you that too, instead of picking one quietly."
+                        body="Every claim in the answer carries its source: PDF page number, video timestamp, or article link. If two sources disagree, Folio tells you that too, instead of picking one quietly."
                     />
                 </div>
             </section>
@@ -80,18 +80,18 @@ export default function LandingPage() {
                     <div className="grid md:grid-cols-2 gap-8">
                         <Diff
                             title="It admits when it's guessing"
-                            body="Most retrieval tools blend saved content with general knowledge and never tell you which is which. Atlas labels every fallback to the open web explicitly, right in the answer."
+                            body="Most retrieval tools blend saved content with general knowledge and never tell you which is which. Folio labels every fallback to the open web explicitly, right in the answer."
                         />
                         <Diff
                             title="Citations you can actually click"
-                            body="A page number or timestamp is only useful if it takes you there. Every source in Atlas links to the precise page or moment it was pulled from."
+                            body="A page number or timestamp is only useful if it takes you there. Every source in Folio links to the precise page or moment it was pulled from."
                         />
                     </div>
                 </div>
             </section>
 
             <footer className="max-w-6xl mx-auto px-6 py-10 flex items-center justify-between text-coordinate">
-                <span>ATLAS</span>
+                <span>Folio</span>
                 <span>Built for precision, not vibes.</span>
             </footer>
         </div>

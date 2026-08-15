@@ -12,7 +12,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[var(--color-paper)] flex flex-col">
       <header className="px-6 h-16 flex items-center">
         <Link to="/" className="text-display text-sm text-[var(--color-ink)]">
-          ATLAS
+          Folio
         </Link>
       </header>
 

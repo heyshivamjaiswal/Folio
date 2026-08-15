@@ -15,7 +15,7 @@ export default function Navbar() {
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link to="/library" className="flex items-center gap-2">
           <BookMarked size={16} />
-          <span className="text-display text-xs">ATLAS</span>
+          <span className="text-display text-xs">Folio</span>
         </Link>
 
         <div className="flex items-center gap-3">
