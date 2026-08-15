@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
-import Navbar from './Nabar';
+import Navbar from './Navbar';
 import { Outlet } from 'react-router-dom';
 
 export default function ProtectedLayout() {

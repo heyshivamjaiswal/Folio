@@ -1,3 +1,4 @@
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export async function apiRequest(
@@ -22,7 +23,7 @@ export async function apiRequest(
   return res.json();
 }
 
-//addBookmark
+// bookmarks
 
 export async function addBookmark(getToken: any, data: { url: string }) {
   return apiRequest(getToken, '/bookmarks', {
@@ -32,10 +33,23 @@ export async function addBookmark(getToken: any, data: { url: string }) {
   });
 }
 
-//chat with bookmark
+export async function listBookmarks(getToken: any) {
+  return apiRequest(getToken, '/bookmarks');
+}
+
+export async function deleteBookmarkApi(getToken: any, id: number) {
+  return apiRequest(getToken, `/bookmarks/${id}`, { method: 'DELETE' });
+}
+
+export async function getBookmarkPdfUrl(getToken: any, id: number) {
+  return apiRequest(getToken, `/bookmarks/${id}/pdf-url`);
+}
+
+// chat
+
 export async function chatWithBookmark(
   getToken: any,
-  data: { bookmarkId: number; question: string }
+  data: { bookmarkId?: number; question: string; mode: 'narrow' | 'ask-anything' }
 ) {
   return apiRequest(getToken, '/chat', {
     method: 'POST',
@@ -44,13 +58,7 @@ export async function chatWithBookmark(
   });
 }
 
-//list bookmark
-
-export async function listBookmarks(getToken: any) {
-  return apiRequest(getToken, '/bookmarks');
-}
-
-//PDF
+// pdf upload
 
 export async function uploadPDF(getToken: any, file: File) {
   const token = await getToken();

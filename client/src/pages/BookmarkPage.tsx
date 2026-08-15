@@ -1,3 +1,4 @@
+// src/pages/BookmarkPage.tsx
 import { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import BookmarkCard from '../components/BookmarkCard';
@@ -11,86 +12,61 @@ export default function BookmarksPage() {
   const { getToken } = useAuth();
 
   const {
-    bookmarks,
-    loading,
-    search,
-    showAdd,
-    activeChat,
-    fetchBookmarks,
-    setSearch,
-    openAdd,
-    closeAdd,
-    openChat,
-    closeChat,
+    bookmarks, loading, search, showAdd, activeChat,
+    fetchBookmarks, setSearch, openAdd, closeAdd, openChat, closeChat, deleteBookmark,
   } = useBookmarkStore();
 
   useEffect(() => {
     fetchBookmarks(getToken);
   }, []);
 
-  const filtered = bookmarks.filter((b) =>
-    b.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = bookmarks.filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="min-h-screen" style={{ background: 'var(--color-paper)' }}>
       <div className="max-w-5xl mx-auto px-6 py-10">
-        {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-xl font-semibold">Your Library</h1>
-            <p className="text-sm text-[var(--color-muted-foreground)]">
-              {bookmarks.length} resources saved
-            </p>
+            <p className="text-eyebrow mb-1">// your library</p>
+            <h1 className="text-display text-2xl">{bookmarks.length} sources saved</h1>
           </div>
-
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-xl text-sm"
-          >
+          <button onClick={openAdd} className="btn-locator flex items-center gap-2">
             <Plus size={14} />
-            Add Resource
+            add
           </button>
         </div>
 
-        {/* Search */}
         <div className="mb-6">
           <SearchBar value={search} onChange={setSearch} />
         </div>
 
-        {/* Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-36 rounded-xl bg-gray-200 animate-pulse"
-              />
+              <div key={i} className="h-36 rounded-sm animate-pulse" style={{ background: 'var(--color-surface)' }} />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-24">
-            <p className="text-sm font-medium">
-              {search ? 'No results found' : 'Your library is empty'}
+          <div className="text-center py-24 border rounded-sm" style={{ borderColor: 'var(--color-border)' }}>
+            <p className="text-coordinate">
+              {search ? 'no matches — try a different search' : 'nothing saved yet — add your first source'}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((b) => (
-              <BookmarkCard key={b.id} bookmark={b} onChat={openChat} />
+              <BookmarkCard
+                key={b.id}
+                bookmark={b}
+                onChat={openChat}
+                onDelete={(bookmark) => deleteBookmark(getToken, bookmark)}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* Modals */}
-      {showAdd && (
-        <AddBookmarkModal
-          onClose={closeAdd}
-          onSuccess={() => fetchBookmarks(getToken)}
-        />
-      )}
-
+      {showAdd && <AddBookmarkModal onClose={closeAdd} onSuccess={() => fetchBookmarks(getToken)} />}
       {activeChat && <ChatBox bookmark={activeChat} onClose={closeChat} />}
     </div>
   );
