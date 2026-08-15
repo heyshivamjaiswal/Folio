@@ -1,318 +1,208 @@
 <div align="center">
 
-# Folio
+# Atlas
 
-### Save anything. Ask anything. Understand everything.
+### Every answer, traced to the line it came from.
 
-**Folio** is a RAG-powered (Retrieval-Augmented Generation) personal knowledge library.  
-Save articles, YouTube videos, PDFs, and raw text — then have real AI conversations with that content.  
-No more saving links you never read. Just ask.
+**Atlas** is a source-verified RAG (Retrieval-Augmented Generation) knowledge tool.
+Save PDFs, articles, and YouTube videos — then ask questions and get answers with
+exact citations: the page number, the timestamp, the paragraph. Not just "trust me."
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Folio-6366f1?style=for-the-badge&logo=vercel)](https://folio-blond-delta.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-heyshivamjaiswal%2FFolio-181717?style=for-the-badge&logo=github)](https://github.com/heyshivamjaiswal/Folio)
-[![API Endpoint](https://img.shields.io/badge/API%20Endpoint-Render-000000?style=for-the-badge&logo=render&logoColor=white)](https://folio-kdur.onrender.com)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Atlas-6366f1?style=for-the-badge&logo=vercel)](https://folio-blond-delta.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github)](https://github.com/heyshivamjaiswal/Atlas)
+[![API](https://img.shields.io/badge/API-Render-000000?style=for-the-badge&logo=render&logoColor=white)](https://folio-kdur.onrender.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Full%20Stack-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 
 </div>
 
 ---
 
-## 📸 Screenshots
+## What Atlas actually does differently
 
-### Library — Your Saved Resources
-> ![bookmark page](./screenshot/bookmarkPage.png)
+Most RAG demos look the same: upload a document, ask a question, get an answer, hope it's right. Atlas is built around one specific idea — **an answer is only useful if you can check it** — and that shapes every design decision below.
 
-### Chat — Talk to Your Content
-> ![chat page](./screenshot/chatPage.png)
-
----
-
-##  What is Folio?
-
-Most people save links and never revisit them. Folio fixes that by letting you **have a conversation with everything you save**.
-
-Paste a URL, drop a YouTube link, upload a PDF, or type raw text. Folio scrapes it, cleans it, chunks it, embeds it into a vector space, and stores it. The next time you open that resource and ask a question — Folio retrieves the most relevant parts of that content and sends them to an LLM to generate a precise, grounded answer.
-
-This is **RAG — Retrieval-Augmented Generation** — and it's the core of how Folio works.
+- **Real citations, not vibes.** Every claim links to the PDF page, the video timestamp, or the article it came from — clickable, not just labeled.
+- **It tells you when it's guessing.** If your saved content doesn't have a good answer, Atlas doesn't quietly blend in general knowledge. It falls back to a live web search only in "Ask Anything" mode, and says so explicitly in the answer.
+- **It admits when it doesn't know.** Ask a narrow question about one source and Atlas can't find it? You get told plainly, with a prompt to broaden the search — not a hallucinated guess.
+- **Cross-source conflict awareness.** If two saved sources disagree, the model is instructed to surface that disagreement instead of silently picking one.
 
 ---
 
-##  Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React + TypeScript + Tailwind CSS + shadcn/ui |
-| Backend | Node.js + Express + TypeScript |
-| Database | PostgreSQL via Prisma ORM |
-| Vector Store | Pinecone |
-| Embeddings | LangChain Embeddings (384 dimensions) |
-| LLM | OpenAI / LangChain LLM |
-| PDF Parsing | pdf-parse |
-| Web Scraping | Axios + Mozilla Readability + Cheerio |
-| YouTube | youtube-transcript |
-| Deployment | Vercel (Frontend) |
+| Frontend | React 19 + TypeScript + Vite + Tailwind CSS v4 |
+| Auth | Clerk |
+| Backend | Node.js + Express 5 + TypeScript |
+| Database | PostgreSQL (Neon) via Prisma ORM |
+| File Storage | Supabase Storage (PDFs) |
+| Vector Store | Pinecone (namespaced per user) |
+| Embeddings | HuggingFace Inference (`sentence-transformers/all-MiniLM-L6-v2`) |
+| LLM | Groq (`llama-3.3-70b-versatile`) via LangChain |
+| PDF Parsing | pdfjs-dist |
+| Web Scraping | Axios + Mozilla Readability + Cheerio, with retry/backoff |
+| YouTube | LangChain `YoutubeLoader` + segment-level timestamps |
+| Web Search Fallback | Tavily |
+| Deployment | Vercel (frontend) + Render (backend) |
 
 ---
 
-##  The RAG System — How It All Works
+## How it works
 
-This is the heart of Folio. Every piece of saved content goes through a multi-stage pipeline before it can be queried. Here's exactly how it works.
+### Ingestion
 
----
-
-### Stage 1 — Source Detection
-
-When a user adds a resource, the first step is figuring out what kind of content it is.
+Every source — a PDF upload, a pasted link, a YouTube URL — goes through the same shape of pipeline, but each type preserves its own structural metadata instead of flattening everything into one undifferentiated blob of text:
 
 ```
-detectSource(input)
-  ├── youtube.com / youtu.be  →  "youtube"
-  ├── input.includes(".pdf")  →  "pdf"
-  ├── starts with "http"      →  "web"
-  └── everything else         →  "text"
-```
-
-This happens automatically — the user never has to pick a type. They paste, Folio figures it out.
-
----
-
-### Stage 2 — Content Loading
-
-Based on the detected source type, the appropriate loader is called:
-
-```
-loadContent(input)
-  ├── "web"     →  scrapeArticle()      — Axios fetch → Readability → Cheerio fallback
-  ├── "pdf"     →  loadPDF()            — Axios (arraybuffer) → pdf-parse
-  ├── "youtube" →  loadYouTubeTranscript() — youtube-transcript API → joined text
-  └── "text"    →  { title: "Text", text: input }
-```
-
-**Web scraping** has a retry mechanism (3 attempts) and uses Mozilla's Readability for clean article extraction, falling back to Cheerio paragraph extraction if Readability fails. If the extracted content is under 400 characters, the ingestion fails fast with an error — no garbage data enters the pipeline.
-
----
-
-### Stage 3 — Text Cleaning
-
-Raw scraped or extracted text is messy — extra whitespace, special characters, newlines everywhere. `cleanText()` normalises the content before it gets chunked.
-
----
-
-### Stage 4 — Chunking
-
-Long documents can't be sent to an embedding model all at once — they'd exceed token limits and lose semantic precision. `chunkTexts()` splits the cleaned text into overlapping chunks.
-
-Each chunk is a semantically meaningful slice of the original document, small enough to embed accurately but large enough to carry context.
-
----
-
-### Stage 5 — Embedding
-
-Each chunk is converted into a **384-dimensional vector** using LangChain's embedding model.
-
-```
-embedDocuments(chunks) → float[][] (one vector per chunk)
-```
-
-A vector is a list of numbers that represents the *meaning* of a piece of text in high-dimensional space. Chunks that mean similar things end up close together. This is what makes semantic search possible.
-
----
-
-### Stage 6 — Storing in Pinecone
-
-Each vector is stored in Pinecone alongside metadata that ties it back to the original bookmark.
-
-```typescript
-{
-  id: `${bookmarkId}-${timestamp}-${i}`,   // unique, no collision on re-ingestion
-  values: vector,                           // the 384-dim embedding
-  metadata: {
-    bookmarkId,                             // which bookmark this chunk belongs to
-    userId,                                 // who owns it
-    text: chunk                             // the raw text for context retrieval
-  }
+Input
+  │
+  ▼
+detectSource() → "pdf" | "web" | "youtube" | "text"
+  │
+  ▼
+loadContent()
+  ├── PDF     → extracted per-page, so page numbers survive into chunking
+  ├── Web     → Readability-first scrape, Cheerio fallback, retry with backoff
+  └── YouTube → LangChain YoutubeLoader + per-segment timestamps
+  │
+  ▼
+cleanText() — normalizes whitespace, preserves paragraph structure
+  │
+  ▼
+chunkTexts() — overlapping chunks, page/timestamp tagged per chunk
+  │
+  ▼
+embedDocuments() — 384-dim vectors (HuggingFace)
+  │
+  ▼
+storeChunk() — Pinecone, namespace(userId), metadata: {
+  sourceType, sourceUrl, page?, startSeconds?, chunkIndex
 }
 ```
 
-Records are stored inside `namespace(userId)` — every user's data is completely isolated in their own namespace. The `bookmarkId` in metadata allows filtering to a single resource at query time.
+Every bookmark also tracks a real ingestion **status** (`pending` → `processing` → `ready`/`failed`), with the failure reason surfaced in the UI — not a silent dead entry that looks saved but never resolves.
+
+### Retrieval and answering
+
+Two modes, deliberately different in behavior, not just UI framing:
+
+```
+Question
+  │
+  ▼
+embedQuery()
+  │
+  ▼
+Pinecone search (scoped to one bookmark, or across all of them)
+  │
+  ▼
+relevance check — good match? or fall back?
+  │
+  ├─ This-source, no match  → "not found in this source" + suggest Ask Anything
+  ├─ Ask-anything, no match → live web search, clearly labeled in the answer
+  └─ good match             → build labeled context blocks (source + page/timestamp)
+  │
+  ▼
+LLM answer — instructed to attribute every claim to its source,
+flag web-fallback content, and surface disagreements
+between sources rather than picking one silently
+  │
+  ▼
+{ answer, sources[] } — each source carries a real link:
+deep-linked YouTube timestamp, direct article URL,
+or a signed URL fetched on demand for private PDFs
+```
+
+**This source** — scoped to one saved bookmark. If the retrieved content isn't a strong enough match for the question, Atlas says so directly and never falls back to the open web. The scope is a promise: an answer here only ever comes from what you saved.
+
+**Ask anything** — searches across every saved source at once. If nothing saved is a strong match, it falls back to a live web search (Tavily) — and the resulting answer explicitly flags which parts came from your content versus the open web.
+
+### RAG pipeline, with the Tavily fallback
+
+The diagram below is the same flow as above, redrawn to make the fallback branch explicit — this is the part that keeps Atlas from quietly turning into "just ask the model."
+
+![RAG pipeline with Tavily fallback](./screenshot/fallback.png)
+
+The key design choice sits in the top fork: **this-source mode never touches the fallback branch at all.** A no-match there is a dead end by design — Atlas tells you plainly and stops, rather than quietly widening the search. Only **ask-anything mode** is allowed to reach for Tavily, and when it does, the LLM is explicitly prompted to label which parts of the answer came from your saved sources versus the open web.
+
+### Two databases, one purpose
+
+**PostgreSQL (Prisma)** — structured bookmark records: title, type, status, storage path, error messages. Powers the library view and lifecycle tracking.
+
+**Pinecone** — the actual semantic memory. Namespaced per user (`namespace(userId)`), so one user's data is never reachable by another's queries, with no extra filtering logic required.
+
+They're linked by `bookmarkId` — Postgres creates it, Pinecone metadata carries it, and citations join the two back together at query time (a chunk's `bookmarkId` resolves to the source's real title for display).
 
 ---
 
-### Stage 7 — Querying (RAG in Action)
-
-When a user asks a question in the chat interface, this is what happens:
+## Project Structure
 
 ```
-User question
-    │
-    ▼
-embedQuery(question)          ← embed the question into the same vector space
-    │
-    ▼
-index.namespace(userId).query({
-  vector: questionVector,
-  topK: 5,                    ← retrieve the 5 most semantically similar chunks
-  filter: { bookmarkId }      ← scoped to the specific bookmark being chatted with
-})
-    │
-    ▼
-buildContext(matches)         ← extract text from matched chunks, collect source URLs
-    │
-    ▼
-askLLM(context, question)     ← send context + question to LLM, get grounded answer
-    │
-    ▼
-{ answer, sources }           ← returned to the user
-```
+server/
+├── controllers/          bookmark, chat, pdf route handlers
+├── routes/                express route wiring
+├── services/
+│   ├── contentLoader.ts   source-type dispatch
+│   ├── pdf.services.ts    per-page PDF extraction
+│   ├── scrape.services.ts web scraping w/ retry
+│   ├── youtube.service.ts LangChain loader + timestamps
+│   ├── buildcontext.ts    assembles labeled context + citations
+│   ├── sourceLink.ts      builds clickable citation links
+│   ├── agent/
+│   │   ├── answerQuestion.ts  narrow vs ask-anything orchestration
+│   │   └── relevance.ts       retrieval-sufficiency threshold
+│   ├── tools/webSearchTool.ts Tavily fallback
+│   ├── storage/supabaseStorage.ts PDF upload/delete/signed URLs
+│   └── pipeline/          full ingestion pipelines (PDF / bookmark)
+├── vector/                Pinecone client, index setup, chunk storage
+├── embeddings/            HuggingFace embedding client
+├── llm/                   Groq client + prompt construction
+└── db/                    Prisma + Supabase clients
 
-The LLM never hallucinates about things not in the document — it can only answer using the retrieved chunks. This is the core promise of RAG.
-
----
-
-### Full Ingestion Pipeline (Visual)
-
-```
-User Input (URL / Text / YouTube / PDF)
-          │
-          ▼
-    detectSource()
-          │
-          ▼
-    loadContent()
-    ├── scrapeArticle()
-    ├── loadPDF()
-    ├── loadYouTubeTranscript()
-    └── raw text
-          │
-          ▼
-     cleanText()
-          │
-          ▼
-     chunkTexts()
-          │
-          ▼
-  embedDocuments()  ──→  384-dim vectors
-          │
-          ▼
-   storeChunk()  ──→  Pinecone namespace(userId)
-                       metadata: { bookmarkId, userId, text }
-```
-
----
-
-### Two Databases, One Purpose
-
-Folio uses two completely separate databases that work together:
-
-**PostgreSQL (via Prisma)**
-Stores structured bookmark records — id, userId, url, title, type, createdAt. This powers the library page and bookmark listing.
-
-**Pinecone**
-Stores vector embeddings for semantic search. Organised by user namespace, filtered by bookmarkId.
-
-They're linked by a single value — `bookmarkId`. PostgreSQL creates it, Pinecone stores it in metadata. At query time, both work together: PostgreSQL provides the title and display data, Pinecone provides the answer.
-
----
-
-## 🗂️ Project Structure
-
-```
-├── server/
-│   ├── controllers/
-│   │   ├── bookmark.controller.ts     # addBookmark, listBookmark
-│   │   ├── chat.controller.ts         # chatWithBookmark
-│   │   └── pdf.controller.ts          # uploadPDF
-│   ├── routes/
-│   │   ├── bookmark.routes.ts
-│   │   ├── chat.routes.ts
-│   │   └── pdf.route.ts
-│   ├── services/
-│   │   ├── contentLoader.ts           # orchestrates source detection + loading
-│   │   ├── searchChunks.ts            # Pinecone semantic search
-│   │   ├── buildcontext.ts            # assembles context from matches
-│   │   ├── pdf.services.ts            # PDF parsing
-│   │   ├── scrape.services.ts         # web scraping
-│   │   ├── youtube.service.ts         # YouTube transcript
-│   │   └── pipeline/
-│   │       ├── processBookmark.ts     # full ingestion pipeline
-│   │       └── pdfProcess.ts          # PDF-specific ingestion
-│   ├── vector/
-│   │   ├── pinecone.ts                # Pinecone client + index
-│   │   ├── storeChunk.ts              # upsert vectors
-│   │   └── createVectorDBIndex.ts     # index initialisation on startup
-│   ├── embeddings/
-│   │   └── embed.ts                   # LangChain embedding model
-│   ├── llm/
-│   │   └── generateAnswer.ts          # LLM call with context
-│   ├── chunk/
-│   │   └── chunkText.ts               # text chunking logic
-│   ├── utils/
-│   │   ├── cleanText.ts
-│   │   └── upload.ts                  # multer config
-│   └── db/
-│       └── prisma.ts
-│
-└── client/
-    ├── src/
-    │   ├── api/
-    │   │   └── index.ts               # all API calls centralised here
-    │   ├── components/
-    │   │   ├── ui/
-    │   │   │   ├── BookmarkCard.tsx
-    │   │   │   ├── AddBookmarkModal.tsx
-    │   │   │   ├── SearchBar.tsx
-    │   │   │   ├── MessageBubble.tsx
-    │   │   │   └── Navbar.tsx
-    │   │   └── ChatBox.tsx
-    │   ├── pages/
-    │   │   └── BookmarksPage.tsx
-    │   └── tpes/
-    │       └── index.ts               # shared TypeScript types
+client/
+├── src/
+│   ├── api/               centralized fetch wrappers
+│   ├── components/        BookmarkCard, ChatBox, SourceChip, ModeToggle, etc.
+│   ├── pages/              LandingPage, BookmarksPage
+│   ├── store/              Zustand bookmark store
+│   ├── theme/               light/dark theme provider
+│   └── type.ts              shared TypeScript types
 ```
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
-```
-POST   /api/bookmarks          Add a bookmark (article / YouTube / text)
-GET    /api/bookmarks?userId=  List all bookmarks for a user
-POST   /api/upload-pdf         Upload a PDF file (multipart/form-data)
-POST   /api/chat               Chat with a specific bookmark
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/bookmarks` | Add a bookmark (article or YouTube link) |
+| `GET` | `/api/bookmarks` | List bookmarks (paginated) |
+| `GET` | `/api/bookmarks/:id` | Get a single bookmark |
+| `DELETE` | `/api/bookmarks/:id` | Delete a bookmark (cascades to Pinecone + Supabase) |
+| `GET` | `/api/bookmarks/:id/pdf-url` | Get a signed URL for a stored PDF |
+| `POST` | `/api/upload-pdf` | Upload a PDF (multipart/form-data) |
+| `POST` | `/api/chat` | Ask a question — narrow or ask-anything mode |
 
-### Request Bodies
-
-```typescript
-// POST /api/bookmarks
-{ userId: string, url: string, title?: string, type?: string }
-
-// POST /api/upload-pdf
-FormData: { file: File, userId: string }
-
-// POST /api/chat
-{ userId: string, bookmarkId: number, question: string }
-```
+All routes are authenticated via Clerk; user identity comes from the session token, not request bodies.
 
 ---
 
-##  Running Locally
+## Running Locally
 
 ### Prerequisites
 
-- Node.js 18+
-- PostgreSQL
-- Pinecone account
-- OpenAI API key
+- Node.js 20+
+- A Neon (or any Postgres) database
+- Pinecone, Clerk, Supabase, HuggingFace, Groq, and Tavily accounts (all have usable free tiers)
 
 ### Backend
 
 ```bash
 cd server
 npm install
-cp .env.example .env
-# Fill in DATABASE_URL, PINECONE_API_KEY, PINECONE_INDEX, OPENAI_API_KEY
-npx prisma migrate dev
+cp .env.example .env   # fill in DATABASE_URL, CLERK_*, PINECONE_*, HF_API_KEY, GROQ_API_KEY, SUPABASE_*, TAVILY_API_KEY
+npx prisma generate
 npm run dev
 ```
 
@@ -321,51 +211,34 @@ npm run dev
 ```bash
 cd client
 npm install
-cp .env.example .env
-# Set VITE_API_URL=http://localhost:3000/api
+cp .env.example .env   # VITE_CLERK_PUBLISHABLE_KEY, VITE_API_URL=http://localhost:3000/api
 npm run dev
 ```
 
 ---
 
-## ⚙️ Environment Variables
+## Key Design Decisions
 
-```env
-# Server
-DATABASE_URL=
-PINECONE_API_KEY=
-PINECONE_INDEX=
-OPENAI_API_KEY=
-PORT=3000
+**Why two chat modes instead of one?**
+Blending "answer from my documents" and "answer from the web" into one undifferentiated mode is how most RAG tools quietly become just a worse search engine. Keeping them separate — and making the fallback explicit when it happens — is a small design choice that changes what the product can honestly claim.
 
-# Client
-VITE_API_URL=http://localhost:3000/api
-```
+**Why track ingestion status instead of fire-and-forget?**
+Scraping and embedding take real time, and can fail — a dead link, a paywalled article, disabled captions. A bookmark that silently sits there with zero chunks and no explanation is worse than a visible failure with a reason attached.
 
----
+**Why Pinecone namespaces per user?**
+Hard data isolation with no per-query filtering overhead — one user's vectors are structurally unreachable from another's queries, not just filtered out after the fact.
 
-##  Key Design Decisions
-
-**Why Pinecone over pgvector?**
-Pinecone is purpose-built for vector search with native ANN indexing, filtering, and namespace isolation out of the box. pgvector works but requires manual tuning at scale. For a project centred on semantic search, a dedicated vector database was the cleaner choice.
-
-**Why namespace by userId?**
-Pinecone namespaces provide hard data isolation between users without any filter overhead. Each user's vectors live in their own partition — there's no risk of cross-user data leakage and queries are faster.
-
-**Why fire ingestion in the background?**
-Scraping, chunking, and embedding can take several seconds especially for long articles. Running `processBookmarks()` without `await` lets the API respond immediately after saving to PostgreSQL, while ingestion completes in the background. No queues, no workers — simple and effective for this scale.
-
-**One input for all content types**
-Source detection is automatic. Users paste anything — a URL, YouTube link, or plain text — and Folio figures out what it is. PDF upload is the only exception since it requires a file picker, so it sits alongside the input as a secondary option.
+**Why per-page and per-timestamp metadata instead of flattening documents into one blob?**
+This is what makes real citations possible at all. Losing page/timestamp boundaries during chunking is a one-way trip — you can't reconstruct "page 12" from a wall of concatenated text after the fact.
 
 ---
 
-## 📄 License
+## License
 
 MIT
 
 ---
 
 <div align="center">
-  Built with curiosity by <a href="https://github.com/heyshivamjaiswal">Shivam Jaiswal</a>
+  Built by <a href="https://github.com/heyshivamjaiswal">Shivam Jaiswal</a>
 </div>
