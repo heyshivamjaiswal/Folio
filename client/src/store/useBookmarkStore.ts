@@ -1,4 +1,3 @@
-// src/store/useBookmarkStore.ts — add deleteBookmark, wire to the DELETE route we built
 import { create } from 'zustand';
 import type { Bookmark } from '../type';
 import { listBookmarks, deleteBookmarkApi } from '../api';

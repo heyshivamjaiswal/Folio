@@ -1,4 +1,3 @@
-// src/components/BookmarkCard.tsx
 import { FileText, Youtube, Globe, AlignLeft, MessageSquare, Trash2 } from 'lucide-react';
 import type { Bookmark } from '../type';
 import StatusDot from './StatusDot';

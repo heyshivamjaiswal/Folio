@@ -1,4 +1,3 @@
-// src/pages/BookmarkPage.tsx
 import { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import BookmarkCard from '../components/BookmarkCard';
@@ -19,6 +18,18 @@ export default function BookmarksPage() {
   useEffect(() => {
     fetchBookmarks(getToken);
   }, []);
+
+  // Poll while anything is still ingesting, so status updates without a manual refresh
+  useEffect(() => {
+    const hasPending = bookmarks.some((b) => b.status === 'pending' || b.status === 'processing');
+    if (!hasPending) return;
+
+    const interval = setInterval(() => {
+      fetchBookmarks(getToken);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [bookmarks]);
 
   const filtered = bookmarks.filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
 

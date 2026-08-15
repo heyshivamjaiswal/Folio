@@ -1,4 +1,4 @@
-// types/source.ts
+
 export type SourceType = 'pdf' | 'web' | 'youtube' | 'ddg_search';
 
 export type SourceRef = {

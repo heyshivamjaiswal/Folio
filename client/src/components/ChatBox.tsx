@@ -1,4 +1,3 @@
-// src/components/ChatBox.tsx
 import { useState, useRef, useEffect } from 'react';
 import { Send, X, Loader2 } from 'lucide-react';
 import type { Bookmark, Message } from '../type';
