@@ -73,7 +73,7 @@ export default function ChatBox({ bookmark, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div
-        className="rounded-sm w-full max-w-2xl flex flex-col h-[640px] border"
+        className="rounded-sm w-full max-w-3xl flex flex-col h-[85vh] max-h-[820px] border"
         style={{
           background: 'var(--color-paper)',
           borderColor: 'var(--color-border)',
