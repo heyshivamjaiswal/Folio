@@ -1,4 +1,3 @@
-// src/components/ModeToggle.tsx
 type Props = {
     mode: 'narrow' | 'ask-anything';
     onChange: (mode: 'narrow' | 'ask-anything') => void;
